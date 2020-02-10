@@ -15,7 +15,8 @@ does not matter to this package. It handles string loading (preferably at the st
 
 type Translator struct {
 	Strings map[string]interface{} // strings will hold *all* translations for every page in every locale
-	Language string
+	MasterLanguage string
+	ActiveLanguage string
 }
 
 func loadStrings(lang string) (map[string]interface{}, error) {
@@ -52,8 +53,27 @@ func (t *Translator) GetStringsForPage (page string, lang string) map[string]int
 	return (t.Strings)[lang].(map[string]interface{})[page].(map[string]interface{})
 }
 
-func (t *Translator) Translate(str string, lang string) string {
+func (t *Translator) Translate(str string) string, Error {
 	// This should be able to be used like Gettext in Php, where you can surround a string with a function call _("str")
 	// in this case it should be used in the template like {{ t.Translate("whatever") }}
-	return "I'll do this later"
+	if t.Contains(str) {
+		// Go through relevant strings and find an equivalent value
+		strings := t.Strings[t.MasterLanguage].(map[string]string)
+		for k, v := range strings {
+			if v == str {
+				return t.Strings[t.Language][k], nil
+			}
+		}
+		// If the above loop doesn't return, the string wasn't found
+		
+	}
+}
+
+func (t *Translator) Contains(str string) bool {
+	for _, a := range t.Strings[t.Language].(map[string]string) {
+		if a == str {
+			return true
+		}
+	}
+	return false
 }
