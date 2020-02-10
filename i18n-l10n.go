@@ -11,6 +11,7 @@ This package assumes that you have one or more toml files marked in the format "
 "locales". It will crash if you don't.
 This package is also agnostic as to how you deal with the user's language. Store it in a session, store it in app logic,
 does not matter to this package. It handles string loading (preferably at the start of the application) and little else.
+There is no support for plural forms as of yet. If I move from TOML to PO files this will change.
  */
 
 type Translator struct {
@@ -53,24 +54,30 @@ func (t *Translator) GetStringsForPage (page string, lang string) map[string]int
 	return (t.Strings)[lang].(map[string]interface{})[page].(map[string]interface{})
 }
 
-func (t *Translator) Translate(str string) string, Error {
+func (t *Translator) Translate(str string) (string) {
 	// This should be able to be used like Gettext in Php, where you can surround a string with a function call _("str")
-	// in this case it should be used in the template like {{ t.Translate("whatever") }}
-	if t.Contains(str) {
-		// Go through relevant strings and find an equivalent value
-		strings := t.Strings[t.MasterLanguage].(map[string]string)
-		for k, v := range strings {
-			if v == str {
-				return t.Strings[t.Language][k], nil
+	// in this case it should be used in the template like {{ .t.Translate "whatever" }}
+	// Go through relevant strings and find an equivalent value
+	strings := t.Strings[t.MasterLanguage].(map[string]interface{})
+	println(strings)
+	// go through all pages and try to find the string
+	for k, _ := range strings {
+		println("In loop at value: ", k)
+		println(strings[k].(map[string]interface{}))
+		for l, j := range strings[k].(map[string]interface{}) {
+			if j.(string) == str {
+				// return j.(string)
+				return t.Strings[t.ActiveLanguage].(map[string]interface{})[k].(map[string]interface{})[l].(string)
 			}
 		}
-		// If the above loop doesn't return, the string wasn't found
-		
 	}
+	return "" // Return an empty string
 }
 
 func (t *Translator) Contains(str string) bool {
-	for _, a := range t.Strings[t.Language].(map[string]string) {
+	println("Entered into contains function")
+	println((*t).Strings[t.MasterLanguage].(map[string]interface{}))
+	for _, a := range t.Strings[t.MasterLanguage].(map[string]string) {
 		if a == str {
 			return true
 		}
