@@ -1,17 +1,19 @@
 package i18n_l10n
 
 import (
-	"fmt"
+	// "fmt"
 	"github.com/BurntSushi/toml"
 )
 
 /*
-This is an opinionated golang package for simple and straightforward internationalization and localization of web apps
-This package assumes that you have one or more toml files marked in the format "active.{lang}.toml" in a directory named
-"locales". It will crash if you don't.
-This package is also agnostic as to how you deal with the user's language. Store it in a session, store it in app logic,
-does not matter to this package. It handles string loading (preferably at the start of the application) and little else.
-There is no support for plural forms as of yet. If I move from TOML to PO files this will change.
+This is a somewhat opinionated golang package for simple and straightforward internationalization and localization of
+web apps. This package assumes that you have one or more toml files marked in the format "active.{lang}.toml" in a
+directory named "locales". It will crash if you don't. It will also crash if there are not corresponding string IDs
+in each localization file.
+Instantiate a Translator and use LoadStrings on launch to access translations. You can pass the Translator to a template
+and use its .Translate function to translate strings. E.g., {{ .t.Translate "Hello, world!" }}
+Alternatively, you could use GetStringsForPage to load the strings of each template into a one-dimensional map, and call
+each string as such: {{ .strings.stringID }}.
  */
 
 type Translator struct {
@@ -43,9 +45,11 @@ func (t *Translator) LoadStrings (langs []string) (map[string]interface{}, error
 		(*strings)[lang] = activeStrings
 	}
 
+	/*
 	for k, v := range t.Strings {
 		fmt.Printf("key[%s] value[%s]\n", k, v)
 	}
+	 */
 
 	return t.Strings, nil
 }
@@ -59,11 +63,8 @@ func (t *Translator) Translate(str string) (string) {
 	// in this case it should be used in the template like {{ .t.Translate "whatever" }}
 	// Go through relevant strings and find an equivalent value
 	strings := t.Strings[t.MasterLanguage].(map[string]interface{})
-	println(strings)
 	// go through all pages and try to find the string
 	for k, _ := range strings {
-		println("In loop at value: ", k)
-		println(strings[k].(map[string]interface{}))
 		for l, j := range strings[k].(map[string]interface{}) {
 			if j.(string) == str {
 				// return j.(string)
@@ -75,8 +76,6 @@ func (t *Translator) Translate(str string) (string) {
 }
 
 func (t *Translator) Contains(str string) bool {
-	println("Entered into contains function")
-	println((*t).Strings[t.MasterLanguage].(map[string]interface{}))
 	for _, a := range t.Strings[t.MasterLanguage].(map[string]string) {
 		if a == str {
 			return true
